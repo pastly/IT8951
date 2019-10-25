@@ -1,4 +1,5 @@
 #include "IT8951.h"
+#include <time.h>
 
 //Global varivale
 IT8951DevInfo gstI80DevInfo;
@@ -11,9 +12,27 @@ uint32_t gulImgBufAddr; //IT8951 Image buffer address
 void LCDWaitForReady()
 {
 	uint8_t ulData = bcm2835_gpio_lev(HRDY);
+	unsigned log_every = 1000000;
+	unsigned count = 0;
+	time_t t;
+	struct tm *t_info;
+	char t_buf[80];
 	while(ulData == 0)
 	{
+		count += 1;
+		if (!(count % log_every)) {
+			time(&t);
+			t_info = localtime(&t);
+			strftime(t_buf, 80, "%x %X", t_info);
+			printf("[%s] busy loop %u times\n", t_buf, count);
+		}
 		ulData = bcm2835_gpio_lev(HRDY);
+	}
+	if (count) {
+		time(&t);
+		t_info = localtime(&t);
+		strftime(t_buf, 80, "%x %X", t_info);
+		printf("[%s] done after %u loops\n", t_buf, count);
 	}
 }
 
